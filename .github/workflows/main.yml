@@ -1,16 +1,22 @@
 name: Manual Maven Build & Publish
 
 on:
-  workflow_dispatch:   # Allows manual trigger
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      # Step 1: Create .m2 and copy settings.xml
+      - name: Configure Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cp ./settings.xml ~/.m2/settings.xml
+        # If your file is in a folder, update path: cp ./maven/settings.xml ~/.m2/settings.xml
 
       # Step 2: Set up Java
       - name: Set up JDK 17
@@ -18,37 +24,25 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          server-id: github  # matches <id> in settings.xml
-          settings-path: ${{ github.workspace }}  # location where settings.xml will be created
+          settings-path: ~/.m2  # VERY IMPORTANT
 
-      # Step 3: Configure Maven settings.xml
-      - name: Create settings.xml
-        run: |
-          mkdir -p ~/.m2
-          cat <<EOF > ~/.m2/settings.xml
-          ${SETTINGS_XML}
-          EOF
-
-      # Step 4: Build with Maven (run tests + package)
+      # Step 3: Build
       - name: Build with Maven
         run: mvn -B clean package
 
-      # Step 5: List Build Artifacts
+      # Step 4: List Build Artifacts
       - name: List Artifacts
-        run: |
-          echo "Listing target directory:"
-          ls -R target
+        run: ls -R target
 
-      # Step 6: Upload Artifact for Download
+      # Step 5: Upload Artifact
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: maven-build-artifact
           path: target/*.jar
 
-      # Step 7: Publish to GitHub Packages
+      # Step 6: Publish to GitHub Packages
       - name: Publish to GitHub Packages
         run: mvn deploy -DskipTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
