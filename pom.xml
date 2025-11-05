@@ -20,6 +20,15 @@
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
     </properties>
 
+    <!-- ✅ Add this for GitHub Packages deployment -->
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/cloudcastle443/actionsdeployement-test</url>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
         <!-- JUnit 5 -->
         <dependency>
